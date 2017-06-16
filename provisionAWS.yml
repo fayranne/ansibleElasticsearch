@@ -1,0 +1,26 @@
+---
+- name: Create AWS Instance with ElasticSearch
+  hosts: localhost
+  connection: local
+  remote_user: root
+  gather_facts: False
+  vars:
+    access_key: 
+    secret_key: 
+    keyName: 
+    ec2_region: us-east-1
+  
+  tasks:
+   - name: Launch Ansible Cloudformation
+     cloudformation:
+       stack_name: "ansible-cloudformation-elasticsearch"
+       state: "present"
+       region: "{{ ec2_region }}"
+       aws_secret_key: "{{ secret_key }}"
+       aws_access_key: "{{ access_key }}"
+       disable_rollback: true
+       template: "cloudformation.json"
+       template_parameters:
+         KeyName: "{{ keyName }}"
+       tags:
+         Stack: ansible-cloudformation
