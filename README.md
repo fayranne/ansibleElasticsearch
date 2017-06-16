@@ -32,7 +32,8 @@ Alternatively you could run:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 *A description of your solution noting interesting choices you made and why you made them*
-     In this solution I provide you with an ansible playbook and an AWS cloudformation template.  My playbook takes the provided variables and passes them to the cloudformation template for use.  In the template I am creating an IAM user and an access key in order to create a Bucket Policy which will allow me to access my s3 bucket where I am keeping another playbook as well as some files that are used in my playbook.  This is all being accessed within the ec2 instance with the user of the User Data property and cfn-init.  This play book handles the uninstalling of Java 7 and the installing of Java 8, as well as the installation of elasticsearch and it's plugins.  I chose to use the x-pack plugin in order to handle the creation of the elasticsearch user as well as to configure my ssl.  I created a ssl cert and key using openssl locally and chose to include it in the payload that is pulled in from s3.  I then point the x-pack to my files after moving them.  I also installed the discovery_ec2 plugin in order to allow the nodes in my cluster the ability to see each other.
+   
+   In this solution I provide you with an ansible playbook and an AWS cloudformation template.  My playbook takes the provided variables and passes them to the cloudformation template for use.  In the template I am creating an IAM user and an access key in order to create a Bucket Policy which will allow me to access my s3 bucket where I am keeping another playbook as well as some files that are used in my playbook.  This is all being accessed within the ec2 instance with the user of the User Data property and cfn-init.  This play book handles the uninstalling of Java 7 and the installing of Java 8, as well as the installation of elasticsearch and it's plugins.  I chose to use the x-pack plugin in order to handle the creation of the elasticsearch user as well as to configure my ssl.  I created a ssl cert and key using openssl locally and chose to include it in the payload that is pulled in from s3.  I then point the x-pack to my files after moving them.  I also installed the discovery_ec2 plugin in order to allow the nodes in my cluster the ability to see each other.
 
 Pain Points:
   - For the interest of time I did not encrypt or decrypt the ssl cert or key.  This is a security issue and should be fixed.
@@ -61,7 +62,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
   
-* Feedback on the exercise and some information about how long you spent on it *
+*Feedback on the exercise and some information about how long you spent on it*
+
    I found this exercise particularly intriguing as it allowed me the same sort of organization and sort of object oriented thinking
 I would use regularly coding, but with a more Systems Engineering sort of aspect -- where I am no longer merely dealing with data
 but with actual servers and objects.  It required me to learn and understand more about the hardware and networking behind an application rather than the application itself. It also provided me to opportunity to learn more about conifuration managment tools (primarily ansible) and their application.  I spent about a week and a half looking at this problem.
