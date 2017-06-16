@@ -24,11 +24,11 @@ Inside the cloned directory run:
 
 Once the playbook has completed you can ssh onto the instance and run the following command:
     "sudo curl -u elastic -k "https://localhost:9200/_cat/health"
-	Password: "changeme"
+	
 	
 Alternatively you could run:
     "sudo curl -u elastic -k "https://localhost:9200"
-	Password: "changeme"
+
   
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
