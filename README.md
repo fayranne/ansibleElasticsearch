@@ -12,7 +12,7 @@ Inside the newly downloaded folder you will find:
   - cloudformation.json
   - provisionAWS.yml
 
-* provisionAWS.yml needs to be in the same directory as cloudformation.json unless provisionAWS is updated to reflect a different location.
+provisionAWS.yml needs to be in the same directory as cloudformation.json unless provisionAWS is updated to reflect a different location.
 
 You will need to input the following criteria in the ProvisionAWS.yml file:
     - access_key: 
