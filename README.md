@@ -8,6 +8,7 @@ In order to run this code you will need the following installed on your linux se
 You need to clone the repository down from git at this url:
 Inside the newly downloaded folder you will find:
   - DNU Folder -- this is my attempt at a cluster and mostly for discussion if time permits
+  - elasticsearch folder -- these are the documents that are being pulled in from the s3 bucket in the json file (included for viewing purposes)
   - cloudformation.json
   - provisionAWS.yml
 
