@@ -13,7 +13,7 @@
     "InstanceType" : {
       "Description" : "WebServer EC2 instance type",
       "Type" : "String",
-      "Default" : "t2.micro",
+      "Default" : "t2.medium",
       "AllowedValues" : [ "t1.micro", "t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium", "c1.xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "g2.8xlarge", "r3.large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge"]
 ,
       "ConstraintDescription" : "must be a valid EC2 instance type."
@@ -214,7 +214,7 @@
       }
     },
 	
-	"InstanceSecurityGroup22" : {
+	"SecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
         "GroupDescription" : "Enable SSH access via port 22",
@@ -255,7 +255,7 @@
 	  
       "Properties" : {
         "InstanceType" : { "Ref" : "InstanceType" },
-        "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup22" } ],
+        "SecurityGroups" : [ { "Ref" : "SecurityGroup" } ],
         "KeyName" : { "Ref" : "KeyName" },
         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
@@ -271,6 +271,7 @@
 			 "         --region ", { "Ref" : "AWS::Region" }, "\n",
 			 
 			 "chmod -R 755 /home/ec2-user/elasticsearch \n",
+			 "/usr/local/bin/ansible-playbook /home/ec2-user/elasticsearch/elasticsearchPlaybook.yml \n",
 
              "# All is well so signal success\n",
              "/opt/aws/bin/cfn-signal -e $? '", { "Ref" : "WaitHandle" }, "'\n"
@@ -287,7 +288,139 @@
       "DependsOn" : "EC2Instance" ,
       "Properties" : {
         "Handle" : {"Ref" : "WaitHandle"},
-        "Timeout" : "1000"
+        "Timeout" : "300"
+      }
+    },
+	
+	"EC2Instance1" : {
+      "Type" : "AWS::EC2::Instance",
+	  "DependsOn" : "BucketPolicy",
+	  "Metadata" : {
+	    "AWS::CloudFormation::Init" : {
+		   "config" : {
+		      "packages" : {
+			     "yum" : {
+				    "git" : [] 
+				 }
+			  },
+			  "sources" : {
+                "/home/ec2-user" : { "Fn::Join" : ["", ["http://", { "Ref" : "BucketName" }, ".s3.amazonaws.com/elasticsearch.zip"]]}
+              }
+		   }
+		},
+		
+		"AWS::CloudFormation::Authentication" : {
+          "S3AccessCreds" : {
+            "type" : "S3",
+            "accessKeyId" : { "Ref" : "S3AccessKeys" },
+            "secretKey" : {"Fn::GetAtt": ["S3AccessKeys", "SecretAccessKey"]},
+            "buckets" : [ { "Ref" : "BucketName" } ]
+          }
+        }
+	  },
+	  
+      "Properties" : {
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "SecurityGroups" : [ { "Ref" : "SecurityGroup" } ],
+        "KeyName" : { "Ref" : "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+		"UserData": { "Fn::Base64" : { "Fn::Join" : ["", [
+             "#!/bin/bash -xe\n",
+             "yum install -y aws-cfn-bootstrap\n",
+			 "pip install ansible\n",
+			 
+			 "# Install application\n",
+             "/opt/aws/bin/cfn-init -v ",
+			 "         --stack ", { "Ref" : "AWS::StackName" },
+			 "         --resource EC2Instance ",
+			 "         --region ", { "Ref" : "AWS::Region" }, "\n",
+			 
+			 "chmod -R 755 /home/ec2-user/elasticsearch \n",
+			 "/usr/local/bin/ansible-playbook /home/ec2-user/elasticsearch/elasticsearchPlaybook.yml \n",
+
+             "# All is well so signal success\n",
+             "/opt/aws/bin/cfn-signal -e $? '", { "Ref" : "WaitHandle1" }, "'\n"
+		]]}}
+      }
+    },
+	
+	"WaitHandle1" : {
+      "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+
+    "WaitCondition1" : {
+      "Type" : "AWS::CloudFormation::WaitCondition",
+      "DependsOn" : "EC2Instance1" ,
+      "Properties" : {
+        "Handle" : {"Ref" : "WaitHandle1"},
+        "Timeout" : "300"
+      }
+    },
+	
+	"EC2Instance2" : {
+      "Type" : "AWS::EC2::Instance",
+	  "DependsOn" : "BucketPolicy",
+	  "Metadata" : {
+	    "AWS::CloudFormation::Init" : {
+		   "config" : {
+		      "packages" : {
+			     "yum" : {
+				    "git" : [] 
+				 }
+			  },
+			  "sources" : {
+                "/home/ec2-user" : { "Fn::Join" : ["", ["http://", { "Ref" : "BucketName" }, ".s3.amazonaws.com/elasticsearch.zip"]]}
+              }
+		   }
+		},
+		
+		"AWS::CloudFormation::Authentication" : {
+          "S3AccessCreds" : {
+            "type" : "S3",
+            "accessKeyId" : { "Ref" : "S3AccessKeys" },
+            "secretKey" : {"Fn::GetAtt": ["S3AccessKeys", "SecretAccessKey"]},
+            "buckets" : [ { "Ref" : "BucketName" } ]
+          }
+        }
+	  },
+	  
+      "Properties" : {
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "SecurityGroups" : [ { "Ref" : "SecurityGroup" } ],
+        "KeyName" : { "Ref" : "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+		"UserData": { "Fn::Base64" : { "Fn::Join" : ["", [
+             "#!/bin/bash -xe\n",
+             "yum install -y aws-cfn-bootstrap\n",
+			 "pip install ansible\n",
+			 
+			 "# Install application\n",
+             "/opt/aws/bin/cfn-init -v ",
+			 "         --stack ", { "Ref" : "AWS::StackName" },
+			 "         --resource EC2Instance ",
+			 "         --region ", { "Ref" : "AWS::Region" }, "\n",
+			 
+			 "chmod -R 755 /home/ec2-user/elasticsearch \n",
+			 "/usr/local/bin/ansible-playbook /home/ec2-user/elasticsearch/elasticsearchPlaybook.yml \n",
+
+             "# All is well so signal success\n",
+             "/opt/aws/bin/cfn-signal -e $? '", { "Ref" : "WaitHandle2" }, "'\n"
+		]]}}
+      }
+    },
+	
+   "WaitHandle2" : {
+      "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+
+    "WaitCondition2" : {
+      "Type" : "AWS::CloudFormation::WaitCondition",
+      "DependsOn" : "EC2Instance2" ,
+      "Properties" : {
+        "Handle" : {"Ref" : "WaitHandle2"},
+        "Timeout" : "300"
       }
     }
   }
